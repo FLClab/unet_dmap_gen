@@ -13,7 +13,7 @@ charset-normalizer=2.0.4=pyhd3eb1b0_0
 cpuonly=2.0=0
 cryptography=37.0.1=py38h9ce1e76_0
 cudatoolkit=10.2.89=hfd86e86_1
-cycler=0.11.0=pypi_0
+cycler=0.11.0
 dlutils=0.0.12=pypi_0
 ffmpeg=4.3=hf484d3e_0
 fonttools=4.33.3=pypi_0
