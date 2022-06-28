@@ -355,7 +355,7 @@ if __name__ == "__main__":
     log_file = open(log_file_path, "a")
 
     # TRAINING LOOP
-    for epoch in range((1 if args.dry_run else epochs)):
+    for epoch in range((3 if args.dry_run else epochs)):
         start = time.time()
         print("[----] Starting epoch {}/{}".format(epoch, epochs))
         log_file.write("[----] Starting epoch {}/{} \n".format(epoch, epochs))
@@ -393,16 +393,16 @@ if __name__ == "__main__":
 
             if (i == random_batch) & ((epoch % 10 == 0) or (epoch < 10)):
                 Xnumpy = X.cpu().data.numpy()
+                unet_dmap_pred_numpy = unet_dmap_pred.cpu().data.numpy()
 
-                # TODO : re-enable, not sure what this does though
-                # logging.collage_summary(
-                #     "Training-images-decoder",
-                #     (Xnumpy[:5], Xnumpy[:5]),
-                #     epoch=epoch,
-                #     **trainer_params["logging"]
-                # )
+                if not os.path.exists(os.path.join(output_folder, "training_examples")):
+                    os.mkdir(os.path.join(output_folder, "training_examples"))
+                np.save(os.path.join(output_folder, "training_examples", f"epoch_{epoch}_input_img"), Xnumpy)
+                np.save(os.path.join(output_folder, "training_examples", f"epoch_{epoch}_output_dmap"),
+                        unet_dmap_pred_numpy)
 
                 del Xnumpy
+                del unet_dmap_pred_numpy
 
                 # To avoid memory leak
             del X,  loss
@@ -431,16 +431,16 @@ if __name__ == "__main__":
 
             if (i == random_batch) & ((epoch % 10 == 0) or (epoch < 10)):
                 Xnumpy = X.cpu().data.numpy()
+                unet_dmap_pred_numpy = unet_dmap_pred.cpu().data.numpy()
 
-                # TODO : re-enable, not sure what this does though
-                # logging.collage_summary(
-                #     "Validation-images-decoder",
-                #     (Xnumpy[:5], Xnumpy[:5]),
-                #     epoch=epoch,
-                #     **trainer_params["logging"]
-                # )
+                if not os.path.exists(os.path.join(output_folder, "validation_examples")):
+                    os.mkdir(os.path.join(output_folder, "validation_examples"))
+                np.save(os.path.join(output_folder, "validation_examples", f"epoch_{epoch}_input_img"), Xnumpy)
+                np.save(os.path.join(output_folder, "validation_examples", f"epoch_{epoch}_output_dmap"),
+                        unet_dmap_pred_numpy)
 
                 del Xnumpy
+                del unet_dmap_pred_numpy
 
             # To avoid memory leak
             del X, loss
