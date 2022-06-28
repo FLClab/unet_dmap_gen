@@ -11,6 +11,7 @@ import utils
 import time
 import pickle
 import string
+import math
 
 from torch.utils.data import DataLoader, Dataset
 from torch import nn
@@ -57,6 +58,93 @@ def create_savefolder(params, dry_run=False):
     return output_folder
 
 
+class GaussianSmoothing(nn.Module):
+    """
+    Apply gaussian smoothing on a 2d tensor. Filtering is performed
+    seperately for each channel in the input using a depthwise convolution.
+    :param channels: Number of channels of the input data
+    :param sigma: Sigma parameter of the gaussian filter
+    :param dim: The number of dimension of the data (2D). Defaults to 2D
+    """
+    def __init__(self, channels, sigma, dim=2):
+        """
+        Instantiates the `GaussianSmoothing`
+        """
+        super(GaussianSmoothing, self).__init__()
+
+        self.dim = dim
+
+        sigma = [sigma] * dim
+        # Kernel size should encompass 3 sigma and should be odd
+        kernel_size = [np.ceil(sig * 2 * 3) // 2 * 2 + 1 for sig in sigma]
+        self.kernel_size = kernel_size[0]
+
+        # The gaussian kernel is the product of the
+        # gaussian function of each dimension.
+        kernel = 1
+        meshgrids = torch.meshgrid(
+            [
+                torch.arange(size, dtype=torch.float32)
+                for size in kernel_size
+            ]
+        )
+        for size, std, mgrid in zip(kernel_size, sigma, meshgrids):
+            mean = (size - 1) / 2
+            kernel *= 1 / (std * math.sqrt(2 * math.pi)) * \
+                      torch.exp(-((mgrid - mean) / std) ** 2 / 2)
+
+        # Make sure sum of values in gaussian kernel equals 1.
+        kernel = kernel / torch.sum(kernel)
+
+        # Reshape to depthwise convolutional weight
+        kernel = kernel.view(1, 1, *kernel.size())
+        kernel = kernel.repeat(channels, *[1] * (kernel.dim() - 1))
+
+        self.register_buffer('weight', kernel)
+        self.groups = channels
+
+        if dim == 2:
+            self.conv = nn.functional.conv2d
+        else:
+            raise RuntimeError(
+                'Only 1, 2 and 3 dimensions are supported. Received {}.'.format(dim)
+            )
+
+    def amax(self, x, dim, keepdim=True):
+        """
+        Implements an `amax` method that is not present in PyTorch 1.5
+        :param x: An input `torch.tensor`
+        :param dim: An int or tuple of ints to apply the max operator
+        :param keepdim: Wheter the output `torch.tensor` should have the same dims
+        :returns : A `torch.tensor`
+        """
+        if isinstance(dim, int):
+            return torch.max(x, dim=dim, keepdim=keepdim)[0]
+        elif isinstance(dim, (tuple, list)):
+            for d in dim:
+                x = torch.max(x, dim=d, keepdim=keepdim)[0]
+            return x
+
+    def forward(self, x, normalize=None):
+        """
+        Apply gaussian filter to input.
+        :param x: A `torch.tensor` of the input data
+        :param normalize: (optional) A `str` of the normalization type
+        :returns : A `torch.tensor` of the filtered input data
+        """
+        pad = int((self.kernel_size - 1) // 2)
+        x = nn.functional.pad(x, (pad, pad, pad, pad), mode='reflect')
+        x = self.conv(x, weight=self.weight, groups=self.groups)
+        if normalize == "max":
+            x = x / (self.amax(x, dim=(-2, -1), keepdim=True) + 0.00001)
+        elif normalize == "kernel":
+            x = x / self.weight[0, 0, int((self.kernel_size - 1) / 2), int((self.kernel_size - 1) / 2)]
+            x = torch.clamp(x, 0, 1)
+        else:
+            pass
+        return x
+
+
 class GaussianConv(nn.Module):
     def __init__(self):
         gaussian_kernel = gkern()
@@ -84,29 +172,13 @@ def criterion(input, target, mean=1, sigma=1):
     """
     loss is mse (?) between input img and traget convolved with gaussian filter
     """
-    # following the logic in https://stackoverflow.com/questions/64800870/pytorch-convolve-a-sample-with-a-specific-filter
-    # gaussian_kernel = gkern()
-    # conv2d = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=gaussian_kernel.shape[0])   # what kernel size should I use?
-    # conv2d.weight = nn.Parameter(gaussian_kernel)
-    # probably need to add some padding to the target img?
-    # gaussian_conv_model = nn.Sequential(conv2d)
-    # psf_target = gaussian_conv_model(target)
 
-    # gkern = GaussianConv()
-    #
-    # psf_target = gkern(target)
-    psf_target = filters.gaussian(target.detach().numpy(), sigma=sigma)
-    # from matplotlib import pyplot as plt
-    # fig, axes = plt.subplots(1, 2)
-    # axes[0].imshow(input.detach().numpy()[0, 0])
-    # axes[1].imshow(psf_target[0, 0])
-    # plt.show()
-    # exit()
+    gkern = GaussianSmoothing(1, 1)
+    psf_target = gkern.forward(target)
 
     # Quadratic loss
     mse_loss_array = (input - psf_target)**2
     mse_loss = mse_loss_array.sum() / (mse_loss_array.shape[-1] * mse_loss_array.shape[-2])
-    mse_loss.requires_grad = True
 
     return mse_loss
 
@@ -150,10 +222,6 @@ if __name__ == "__main__":
         data_splitter(path=PATH, quality_threshold=args.quality_threshold)
 
     training, testing = ActinDataset(training_path), ActinDataset(testing_path)
-    print("First initialization of data")
-    print(f"size of training dataset = {len(training)}")
-    print(f"size of validation dataset = {len(testing)}")
-    print("----------------------")
 
     # metadata = utils.load_json("./dataset/metadata_2019-06-26.json")   # j'ai pas ça
     # maxima, minima = [], []
@@ -245,10 +313,6 @@ if __name__ == "__main__":
 
     train_loader = DataLoader(training)
     valid_loader = DataLoader(testing)
-    print("Putting data in data loader")
-    print(f"size of training dataset = {len(train_loader)}")
-    print(f"size of validation dataset = {len(valid_loader)}")
-    print("-----------------")
 
     unet = UNet(n_channels=1, n_classes=1)   # right? og code uses trainer_params as input
 
@@ -280,28 +344,10 @@ if __name__ == "__main__":
     # rename files 0 to n-1 in order to load them correctly
     files_training = [name for name in os.listdir(training_path) if os.path.isfile(os.path.join(training_path, name))]
     files_testing = [name for name in os.listdir(testing_path) if os.path.isfile(os.path.join(testing_path, name))]
-    print("Putting paths to data in lists")
-    print(f"Length of file names for training = {len(files_training)}")
-    print(f"Length of file names for validation = {len(files_testing)}")
-    print("---------------")
-    print("training :")
-    print(files_training)
-    print(files_testing)
     for i, name in enumerate(sorted(files_training)):
-        print(f"i = {i}, current name  = {os.path.join(training_path, name)}, new name = {os.path.join(training_path, f'{str(i)}')}")
         os.rename(os.path.join(training_path, name), os.path.join(training_path, f"{str(i)}"))
-    print("testing :")
     for i, name in enumerate(sorted(files_testing)):
-        print(f"i = {i}, current name  = {os.path.join(testing_path, name)}, new name = {os.path.join(testing_path, f'{str(i)}')}")
         os.rename(os.path.join(testing_path, name), os.path.join(testing_path, f"{str(i)}"))
-    files_training_valid = [name for name in os.listdir(training_path) if os.path.isfile(os.path.join(training_path, name))]
-    files_testing_valid = [name for name in os.listdir(testing_path) if os.path.isfile(os.path.join(testing_path, name))]
-    print(files_training_valid)
-    print(files_testing_valid)
-    print("Finished renaming data files")
-    print(f"Length of file names for training = {len(files_training_valid)}")
-    print(f"Length of file names for validation = {len(files_testing_valid)}")
-    print("---------------")
 
     dataframe = pd.DataFrame({"epoch": [None], "trainMean": [None], "testMean": [None], "testMin": [None]})
     dataframe.drop([0])
@@ -321,10 +367,6 @@ if __name__ == "__main__":
         unet.train()
 
         random_batch = random.randint(0, len(train_loader))
-        print("In training loop")
-        print(f"size of training dataset = {len(train_loader)}")
-        print(f"size of testing dataset = {len(valid_loader)}")
-        print("-------------")
         for i, X in enumerate(tqdm(train_loader, desc="[----] ")):
 
             # Reshape and send to gpu
