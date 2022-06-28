@@ -168,13 +168,15 @@ def gkern(kernlen=256, std=128):
     return gkern2d
 
 
-def criterion(input, target, mean=1, sigma=1):
+def criterion(input, target, mean=1, sigma=1, cuda=False):
     """
     loss is mse (?) between input img and traget convolved with gaussian filter
     """
 
-    gkern = GaussianSmoothing(1, 1)
+    gkern = GaussianSmoothing(1, sigma)
     psf_target = gkern.forward(target)
+    if cuda:
+        psf_target = psf_target.to(device='cuda')
 
     # Quadratic loss
     mse_loss_array = (input - psf_target)**2
