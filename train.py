@@ -174,6 +174,8 @@ def criterion(input, target, mean=1, sigma=1, cuda=False):
     """
 
     gkern = GaussianSmoothing(1, sigma)
+    if cuda:
+        target = target.to(device='cuda')
     psf_target = gkern.forward(target)
     if cuda:
         psf_target = psf_target.to(device='cuda')
