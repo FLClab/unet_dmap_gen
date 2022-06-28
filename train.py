@@ -143,6 +143,7 @@ if __name__ == "__main__":
     if args.dry_run:
         training_path = PATH + f"/train_dry"
         testing_path = PATH + f"/test_dry"
+        print("???")
     else:
         training_path = PATH + f"/train_quality_{args.quality_threshold}"
         testing_path = PATH + f"/test_quality_{args.quality_threshold}"
