@@ -286,11 +286,11 @@ if __name__ == "__main__":
     print("---------------")
     print("training :")
     for i, name in enumerate(files_training):
-        print(f"i = {i}, name = {name}")
+        print(f"i = {i}, current name  = {os.path.join(training_path, name)}, new name = {os.path.join(training_path, f'{str(i)}')}")
         os.rename(os.path.join(training_path, name), os.path.join(training_path, f"{str(i)}"))
     print("testing :")
     for i, name in enumerate(files_testing):
-        print(f"i = {i}, name = {name}")
+        print(f"i = {i}, current name  = {os.path.join(training_path, name)}, new name = {os.path.join(training_path, f'{str(i)}')}")
         os.rename(os.path.join(testing_path, name), os.path.join(testing_path, f"{str(i)}"))
     files_training_valid = [name for name in os.listdir(training_path) if os.path.isfile(os.path.join(training_path, name))]
     files_testing_valid = [name for name in os.listdir(testing_path) if os.path.isfile(os.path.join(testing_path, name))]
