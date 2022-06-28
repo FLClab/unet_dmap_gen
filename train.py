@@ -285,6 +285,8 @@ if __name__ == "__main__":
     print(f"Length of file names for validation = {len(files_testing)}")
     print("---------------")
     print("training :")
+    print(files_training)
+    print(files_testing)
     for i, name in enumerate(files_training):
         print(f"i = {i}, current name  = {os.path.join(training_path, name)}, new name = {os.path.join(training_path, f'{str(i)}')}")
         os.rename(os.path.join(training_path, name), os.path.join(training_path, f"{str(i)}"))
