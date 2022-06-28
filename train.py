@@ -285,9 +285,9 @@ if __name__ == "__main__":
     print(f"Length of file names for validation = {len(files_testing)}")
     print("---------------")
     for i, name in enumerate(files_training):
-        os.rename(os.path.join(training_path, name), os.path.join(training_path, f"{str(i)}.npz"))
+        os.rename(os.path.join(training_path, name), os.path.join(training_path, f"{str(i)}"))
     for i, name in enumerate(files_testing):
-        os.rename(os.path.join(testing_path, name), os.path.join(testing_path, f"{str(i)}.npz"))
+        os.rename(os.path.join(testing_path, name), os.path.join(testing_path, f"{str(i)}"))
     files_training_valid = [name for name in os.listdir(training_path) if os.path.isfile(os.path.join(training_path, name))]
     files_testing_valid = [name for name in os.listdir(testing_path) if os.path.isfile(os.path.join(testing_path, name))]
     print("Finished renaming data files")
