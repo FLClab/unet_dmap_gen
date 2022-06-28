@@ -17,7 +17,7 @@ from torch import nn
 from tqdm import *
 from data.split_data_quality import data_splitter
 from collections import defaultdict
-from dataset_2 import ActinDataset
+from dataset import ActinDataset
 from unet import UNet
 from skimage import filters
 
