@@ -150,6 +150,10 @@ if __name__ == "__main__":
         data_splitter(path=PATH, quality_threshold=args.quality_threshold)
 
     training, testing = ActinDataset(training_path), ActinDataset(testing_path)
+    print("First initialization of data")
+    print(f"size of training dataset = {len(training)}")
+    print(f"size of validation dataset = {len(testing)}")
+    print("----------------------")
 
     # metadata = utils.load_json("./dataset/metadata_2019-06-26.json")   # j'ai pas ça
     # maxima, minima = [], []
@@ -241,6 +245,10 @@ if __name__ == "__main__":
 
     train_loader = DataLoader(training)
     valid_loader = DataLoader(testing)
+    print("Putting data in data loader")
+    print(f"size of training dataset = {len(train_loader)}")
+    print(f"size of validation dataset = {len(valid_loader)}")
+    print("-----------------")
 
     unet = UNet(n_channels=1, n_classes=1)   # right? og code uses trainer_params as input
 
@@ -272,10 +280,20 @@ if __name__ == "__main__":
     # rename files 0 to n-1 in order to load them correctly
     files_training = [name for name in os.listdir(training_path) if os.path.isfile(os.path.join(training_path, name))]
     files_testing = [name for name in os.listdir(testing_path) if os.path.isfile(os.path.join(testing_path, name))]
+    print("Putting paths to data in lists")
+    print(f"Length of file names for training = {len(files_training)}")
+    print(f"Length of file names for validation = {len(files_testing)}")
+    print("---------------")
     for i, name in enumerate(files_training):
         os.rename(os.path.join(training_path, name), os.path.join(training_path, str(i)))
     for i, name in enumerate(files_testing):
         os.rename(os.path.join(testing_path, name), os.path.join(testing_path, str(i)))
+    print("Finished renaming data files")
+    print(f"Length of file names for training = {len(files_training)}")
+    print(f"Length of file names for validation = {len(files_testing)}")
+    print("---------------")
+    # maybe fully reiterate through the folders instead of this?
+    # cause right now a file could have been deleted, but the list would still be the same length
 
     dataframe = pd.DataFrame({"epoch": [None], "trainMean": [None], "testMean": [None], "testMin": [None]})
     dataframe.drop([0])
@@ -283,7 +301,7 @@ if __name__ == "__main__":
     log_file = open(log_file_path, "a")
 
     # TRAINING LOOP
-    for epoch in range((3 if args.dry_run else epochs)):
+    for epoch in range((1 if args.dry_run else epochs)):
         start = time.time()
         print("[----] Starting epoch {}/{}".format(epoch, epochs))
         log_file.write("[----] Starting epoch {}/{} \n".format(epoch, epochs))
@@ -295,6 +313,10 @@ if __name__ == "__main__":
         unet.train()
 
         random_batch = random.randint(0, len(train_loader))
+        print("In training loop")
+        print(f"size of training dataset = {len(train_loader)}")
+        print(f"size of testing dataset = {len(valid_loader)}")
+        print("-------------")
         for i, X in enumerate(tqdm(train_loader, desc="[----] ")):
 
             # Reshape and send to gpu
