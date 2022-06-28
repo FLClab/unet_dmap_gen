@@ -383,7 +383,7 @@ if __name__ == "__main__":
 
             # Prediction and loss computation
             unet_dmap_pred = unet.forward(X)
-            loss = criterion(X, unet_dmap_pred)
+            loss = criterion(X, unet_dmap_pred, cuda=args.cuda)
 
             # Keeping track of statistics
             statLossTrain.append([loss.item()])
@@ -426,7 +426,7 @@ if __name__ == "__main__":
             unet_dmap_pred= unet.forward(X)
 
             # Calculates the error in generation
-            loss = criterion(X, unet_dmap_pred)
+            loss = criterion(X, unet_dmap_pred, cuda=args.cuda)
 
             # Keeping track of statistics
             statLossTest.append([loss.item()])
