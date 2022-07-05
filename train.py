@@ -16,7 +16,7 @@ import math
 from torch.utils.data import DataLoader, Dataset
 from torch import nn
 from tqdm import *
-from data.split_data_quality import data_splitter
+from data.split_data_quality import data_splitter, data_splitter_v2
 from collections import defaultdict
 from dataset import ActinDataset
 from unet import UNet
@@ -222,10 +222,9 @@ if __name__ == "__main__":
         training_path = PATH + f"/train_dry"
         testing_path = PATH + f"/test_dry"
     else:
+        data_splitter_v2(PATH, quality_threshold=args.quality_threshold, individual_norm=True)
         training_path = PATH + f"/train_quality_{args.quality_threshold}"
         testing_path = PATH + f"/test_quality_{args.quality_threshold}"
-    if not os.path.exists(training_path):
-        data_splitter(path=PATH, quality_threshold=args.quality_threshold)
 
     training, testing = ActinDataset(training_path), ActinDataset(testing_path)
 
@@ -347,6 +346,7 @@ if __name__ == "__main__":
     with open(f'{os.path.join(output_folder, "training_parameters")}.pkl', 'wb') as handle:
         pickle.dump(trainer_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+    # TODO : do this in the data splitter func
     # rename files 0 to n-1 in order to load them correctly
     files_training = [name for name in os.listdir(training_path) if os.path.isfile(os.path.join(training_path, name))]
     files_testing = [name for name in os.listdir(testing_path) if os.path.isfile(os.path.join(testing_path, name))]
