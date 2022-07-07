@@ -168,7 +168,7 @@ def gkern(kernlen=256, std=128):
     return gkern2d
 
 
-def criterion(input, target, mean=1, sigma=1, cuda=False):
+def criterion(input, target, sigma=1, cuda=False):
     """
     loss is mse (?) between input img and traget convolved with gaussian filter
     """
@@ -178,7 +178,7 @@ def criterion(input, target, mean=1, sigma=1, cuda=False):
         gkern = gkern.cuda()
     if cuda:
         target = target.to(device='cuda')
-    psf_target = gkern.forward(target)
+    psf_target = gkern.forward(target, normalize="kernel")   # TODO : normalement c'était none, tester avec kernel
     if cuda:
         psf_target = psf_target.to(device='cuda')
 
@@ -202,6 +202,7 @@ if __name__ == "__main__":
     parser.add_argument("--no-tqdm", action="store_true",
                         help="Wheter to use tqdm")
     parser.add_argument("--quality-threshold", type=float, default=0.7)
+    parser.add_argument("--sigma", type=float, default=1.6985)
     args = parser.parse_args()
 
     # Setting the seed
@@ -387,7 +388,7 @@ if __name__ == "__main__":
 
             # Prediction and loss computation
             unet_dmap_pred = unet.forward(X)
-            loss = criterion(X, unet_dmap_pred, cuda=args.cuda)
+            loss = criterion(X, unet_dmap_pred, sigma=args.sigma, cuda=args.cuda)
 
             # Keeping track of statistics
             statLossTrain.append([loss.item()])
@@ -430,7 +431,7 @@ if __name__ == "__main__":
             unet_dmap_pred= unet.forward(X)
 
             # Calculates the error in generation
-            loss = criterion(X, unet_dmap_pred, cuda=args.cuda)
+            loss = criterion(X, unet_dmap_pred, sigma=args.sigma, cuda=args.cuda)
 
             # Keeping track of statistics
             statLossTest.append([loss.item()])
@@ -497,11 +498,13 @@ if __name__ == "__main__":
         print("[----]     Current best network : {}".format(stats["testMin"][-1]))
         print("[----]     Current learning rate : {}".format(stats["lr"][-1]))
         print("[----]     Took {} seconds".format(time.time() - start))
+        print("[----]     Current time : {}".format(datetime.datetime.now()))
         log_file.write("[----] Epoch {} done! \n".format(epoch + 1))
         log_file.write("[----]     Avg loss train/validation : {} / {} \n".format(stats["trainMean"][-1], stats["testMean"][-1]))
         log_file.write("[----]     Current best network : {} \n".format(stats["testMin"][-1]))
         log_file.write("[----]     Current learning rate : {} \n".format(stats["lr"][-1]))
         log_file.write("[----]     Took {} seconds \n".format(time.time() - start))
+        log_file.write("[----]     Current time : {}".format(datetime.datetime.now()))
         pickle.dump(stats, open(os.path.join(output_folder, "stats.pkl"), "wb"), protocol=pickle.HIGHEST_PROTOCOL)
 
     log_file.close()
