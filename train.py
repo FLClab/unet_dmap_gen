@@ -178,7 +178,7 @@ def criterion(input, target, sigma=1, cuda=False):
         gkern = gkern.cuda()
     if cuda:
         target = target.to(device='cuda')
-    psf_target = gkern.forward(target, normalize="kernel")   # TODO : normalement c'était none, tester avec kernel
+    psf_target = gkern.forward(target, normalize=None)   # TODO : normalement c'était none, tester avec kernel
     if cuda:
         psf_target = psf_target.to(device='cuda')
 
