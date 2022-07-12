@@ -223,7 +223,7 @@ if __name__ == "__main__":
         training_path = PATH + f"/train_dry"
         testing_path = PATH + f"/test_dry"
     else:
-        data_splitter_v2(PATH, quality_threshold=args.quality_threshold, individual_norm=True)
+        data_splitter_v2(PATH, quality_threshold=args.quality_threshold, individual_norm=True, rotations=True)
         training_path = PATH + f"/train_quality_{args.quality_threshold}"
         testing_path = PATH + f"/test_quality_{args.quality_threshold}"
 
