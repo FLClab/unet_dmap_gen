@@ -33,7 +33,8 @@ class ActinDataset(Dataset):
         sample = {'image': image}
 
         if self.transform:
-            sample = self.transform(sample)
+            # sample = self.transform(sample)
+            sample = {'image': self.transform(sample['image'])}
 
         return sample
 

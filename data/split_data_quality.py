@@ -41,7 +41,7 @@ def data_splitter(path="./data/actin", quality_threshold=0.7):
           f"({round(100 * n_test_above_th / (n_train_above_th + n_test_above_th), 4)} of images above threshold are test)")
 
 
-def data_splitter_v2(path="./data/actin", quality_threshold=0.7, individual_norm=False):
+def data_splitter_v2(path="./data/actin", quality_threshold=0.7, individual_norm=False, rotations=True):
     """
     # TODO : implement individual img normalisation
     Splits the data :)
@@ -135,12 +135,36 @@ def data_splitter_v2(path="./data/actin", quality_threshold=0.7, individual_norm
         [name for name in os.listdir(new_train_dir) if os.path.isfile(os.path.join(new_train_dir, name))]
     )
 
-    print("Done")
     print(f"There are {n_train_above_th} train images with quality >= {quality_threshold} "
           f"({round(100 * n_train_above_th / (n_train_above_th + n_test_above_th), 4)} of images above threshold are train)")
     print(f"There are {n_test_above_th} test images with quality >= {quality_threshold} "
           f"({round(100 * n_test_above_th / (n_train_above_th + n_test_above_th), 4)} of images above threshold are test)")
-    # TODO : test ça
+
+    if rotations:
+        biggest_idx = sorted(
+            [int(name.split('.')[0]) for name in os.listdir(new_train_dir)
+             if os.path.isfile(os.path.join(new_train_dir, name))]
+        )[-1]
+
+        augmented_idx = biggest_idx + 1
+        for idx, name in enumerate(os.listdir(new_train_dir)):
+            img = np.load(new_train_dir + "/" + name)["arr_0"]
+            img_rot90 = np.rot90(img)
+            np.savez(new_train_dir + f"/{augmented_idx}.npz", img_rot90)
+            augmented_idx += 1
+            img_rot180 = np.rot90(img, k=2)
+            np.savez(new_train_dir + f"/{augmented_idx}.npz", img_rot180)
+            augmented_idx += 1
+            img_rot270 = np.rot90(img, k=3)
+            np.savez(new_train_dir + f"/{augmented_idx}.npz", img_rot270)
+            augmented_idx += 1
+
+    n_train_augmented = len(
+        [name for name in os.listdir(new_train_dir) if os.path.isfile(os.path.join(new_train_dir, name))]
+    )
+
+    print("Done")
+    print(f"With rotations, there are {n_train_augmented} training images")
 
 
 
@@ -148,19 +172,19 @@ if __name__ == "__main__":
     QUALITY_TH = 0.7
     data_splitter_v2(path="./data/actin", quality_threshold=QUALITY_TH, individual_norm=True)
 
-    from matplotlib import pyplot as plt
-    print(":)")
-    # just to test, load an img from test_quality_0.7 and another from test_all and compare their values
-    # test_all img values should all be near 0.5
-    img_og_folder = np.load("./data/actin/test_all/0-0.757.npz")["arr_0"]
-    img_processed = np.load("./data/actin/train_quality_0.7/0.npz")["arr_0"]
-
-    fig, axes = plt.subplots(1, 2)
-
-    axes[0].imshow(img_og_folder)
-    axes[0].set_title(f"min = {np.min(img_og_folder)}, max = {np.max(img_og_folder)}")
-
-    axes[1].imshow(img_processed)
-    axes[1].set_title(f"min = {np.min(img_processed)}, max = {np.max(img_processed)}")
-
-    plt.show()
+    # from matplotlib import pyplot as plt
+    # print(":)")
+    # # just to test, load an img from test_quality_0.7 and another from test_all and compare their values
+    # # test_all img values should all be near 0.5
+    # img_og_folder = np.load("./data/actin/test_all/0-0.757.npz")["arr_0"]
+    # img_processed = np.load("./data/actin/train_quality_0.7/0.npz")["arr_0"]
+    #
+    # fig, axes = plt.subplots(1, 2)
+    #
+    # axes[0].imshow(img_og_folder)
+    # axes[0].set_title(f"min = {np.min(img_og_folder)}, max = {np.max(img_og_folder)}")
+    #
+    # axes[1].imshow(img_processed)
+    # axes[1].set_title(f"min = {np.min(img_processed)}, max = {np.max(img_processed)}")
+    #
+    # plt.show()
