@@ -59,7 +59,7 @@ acq_save_path = "./data/actin/acquisitions"
 if not os.path.exists(acq_save_path):
     os.mkdir(acq_save_path)
 
-for i in range(10):
+for i in range(n_datamaps):
     print(f"acq {i+1} of {n_datamaps}")
     molec_disp = np.array(1000 * np.load(datamaps_dir + f"/{i}.npy"), dtype=int)
 
