@@ -167,10 +167,100 @@ def data_splitter_v2(path="./data/actin", quality_threshold=0.7, individual_norm
     print(f"With rotations, there are {n_train_augmented} training images")
 
 
+def big_dataset_builder(
+        train_paths, test_paths, output_path="./data/big_dataset", quality_threshold=0.7, rotations=True
+):
+    """
+    go through all the paths and extract data above threshold to build big general dataset
+    :param paths:
+    :param quality_threshold:
+    :param rotations:
+    :return:
+    """
+
+    def extractor(paths_list, output_path):
+        n_imgs = 0
+        n_images_per_set_list = []
+        for path in paths_list:
+            print(f"Extracting images from dataset at {path} ...")
+            n_images_per_set = 0
+            img_files = [
+                f for f in os.listdir(path) if
+                os.path.isfile(os.path.join(path, f)) and f.split(".")[-1] == "npz"
+            ]
+
+            # iterate through the list
+            for img in img_files:
+                quality = int(img.split(".")[1]) / 1000
+                if quality >= quality_threshold:
+                    unnormalized_img = np.load(os.path.join(path, img))["arr_0"]
+                    normalized_img = unnormalized_img / np.max(unnormalized_img)
+
+                    np.savez(output_path + f"/{n_imgs}.npz", normalized_img)
+                    n_imgs += 1
+                    n_images_per_set += 1
+
+                    img_rot90 = np.rot90(normalized_img)
+                    np.savez(output_path + f"/{n_imgs}.npz", img_rot90)
+                    n_imgs += 1
+                    n_images_per_set += 1
+
+                    img_rot180 = np.rot90(normalized_img, k=2)
+                    np.savez(output_path + f"/{n_imgs}.npz", img_rot180)
+                    n_imgs += 1
+                    n_images_per_set += 1
+
+                    img_rot270 = np.rot90(normalized_img, k=3)
+                    np.savez(output_path + f"/{n_imgs}.npz", img_rot270)
+                    n_imgs += 1
+                    n_images_per_set += 1
+
+            n_images_per_set_list.append(n_images_per_set)   # divide this by 4 to get number without data augmentation
+        return n_images_per_set_list
+
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+    else:
+        shutil.rmtree(output_path)
+        os.mkdir(output_path)
+
+    train_save_path = output_path + f"/train_quality_{quality_threshold}"
+    if not os.path.exists(train_save_path):
+        os.mkdir(train_save_path)
+    else:
+        shutil.rmtree(train_save_path)
+        os.mkdir(train_save_path)
+
+    test_save_path = output_path + f"/test_quality_{quality_threshold}"
+    if not os.path.exists(test_save_path):
+        os.mkdir(test_save_path)
+    else:
+        shutil.rmtree(test_save_path)
+        os.mkdir(test_save_path)
+
+    n_imgs_per_set_train = extractor(train_paths, train_save_path)
+    print(n_imgs_per_set_train)
+
+    n_imgs_per_set_test = extractor(test_paths, test_save_path)
+    print(n_imgs_per_set_test)
+
+
+
 
 if __name__ == "__main__":
-    QUALITY_TH = 0.7
-    data_splitter_v2(path="./data/actin", quality_threshold=QUALITY_TH, individual_norm=True)
+    # QUALITY_TH = 0.7
+    # data_splitter_v2(path="./data/actin", quality_threshold=QUALITY_TH, individual_norm=True)
+
+    train_paths = [
+        "./data/actin/train_all", "./data/camkii/CaMKII_Neuron/train", "./data/lifeact/LifeAct_Neuron/train",
+        "./data/psd/PSD95_Neuron/train", "./data/tubulin/train"
+    ]
+    test_paths = [
+        "./data/actin/test_all", "./data/camkii/CaMKII_Neuron/test", "./data/lifeact/LifeAct_Neuron/test",
+        "./data/psd/PSD95_Neuron/test", "./data/tubulin/test"
+    ]
+
+    big_dataset_builder(train_paths, test_paths)
 
     # from matplotlib import pyplot as plt
     # print(":)")

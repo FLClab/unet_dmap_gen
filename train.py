@@ -16,7 +16,7 @@ import math
 from torch.utils.data import DataLoader, Dataset
 from torch import nn
 from tqdm import *
-from data.split_data_quality import data_splitter, data_splitter_v2
+from data.split_data_quality import data_splitter, data_splitter_v2, big_dataset_builder
 from collections import defaultdict
 from dataset import ActinDataset
 from unet import UNet
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.enabled=False
     torch.backends.cudnn.deterministic=True
 
-    PATH = "./data/actin"
+    PATH = "./data/big_dataset"
 
     if args.no_tqdm:
         def tqdm(loader, *args, **kwargs):
@@ -223,7 +223,18 @@ if __name__ == "__main__":
         training_path = PATH + f"/train_dry"
         testing_path = PATH + f"/test_dry"
     else:
-        data_splitter_v2(PATH, quality_threshold=args.quality_threshold, individual_norm=True, rotations=True)
+        # data_splitter_v2(PATH, quality_threshold=args.quality_threshold, individual_norm=True, rotations=True)
+        train_subset_paths = [
+            "./data/actin/train_all", "./data/camkii/CaMKII_Neuron/train", "./data/lifeact/LifeAct_Neuron/train",
+            "./data/psd/PSD95_Neuron/train", "./data/tubulin/train"
+        ]
+        test_subset_paths = [
+            "./data/actin/test_all", "./data/camkii/CaMKII_Neuron/test", "./data/lifeact/LifeAct_Neuron/test",
+            "./data/psd/PSD95_Neuron/test", "./data/tubulin/test"
+        ]
+        big_dataset_builder(
+            train_subset_paths, test_subset_paths, quality_threshold=args.quality_threshold, output_path=PATH
+        )
         training_path = PATH + f"/train_quality_{args.quality_threshold}"
         testing_path = PATH + f"/test_quality_{args.quality_threshold}"
 
