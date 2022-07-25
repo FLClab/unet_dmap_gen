@@ -20,7 +20,10 @@ class ActinDataset(Dataset):
         self.transform = transform
 
     def __len__(self):
-        return len([name for name in os.listdir(self.root_dir) if os.path.isfile(os.path.join(self.root_dir, name))])
+        return len([
+            name for name in os.listdir(self.root_dir) if os.path.isfile(os.path.join(self.root_dir, name))
+                                                          and name.split(".")[-1] != "csv"
+        ])
 
     def __getitem__(self, item):
         # if torch.is_tensor(idx):
