@@ -220,9 +220,9 @@ def big_dataset_builder(
 
     if not os.path.exists(output_path):
         os.mkdir(output_path)
-    else:
-        shutil.rmtree(output_path)
-        os.mkdir(output_path)
+    # else:
+    #     shutil.rmtree(output_path)
+    #     os.mkdir(output_path)
 
     train_save_path = output_path + f"/train_quality_{quality_threshold}"
     if not os.path.exists(train_save_path):

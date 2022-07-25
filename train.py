@@ -202,7 +202,7 @@ if __name__ == "__main__":
     parser.add_argument("--no-tqdm", action="store_true",
                         help="Wheter to use tqdm")
     parser.add_argument("--quality-threshold", type=float, default=0.7)
-    parser.add_argument("--sigma", type=float, default=1.0)
+    parser.add_argument("--sigma", type=float, default=1.0,)
     args = parser.parse_args()
 
     # Setting the seed
