@@ -168,7 +168,7 @@ def data_splitter_v2(path="./data/actin", quality_threshold=0.7, individual_norm
 
 
 def big_dataset_builder(
-        train_paths, test_paths, output_path="./data/big_dataset", quality_threshold=0.7, rotations=True
+        train_paths, test_paths, output_path="./data/big_dataset", quality_threshold=0.7
 ):
     """
     go through all the paths and extract data above threshold to build big general dataset
@@ -194,7 +194,9 @@ def big_dataset_builder(
                 quality = int(img.split(".")[1]) / 1000
                 if quality >= quality_threshold:
                     unnormalized_img = np.load(os.path.join(path, img))["arr_0"]
-                    normalized_img = unnormalized_img / np.max(unnormalized_img)
+                    # normalized_img = unnormalized_img / np.max(unnormalized_img)
+                    normalized_img = (unnormalized_img - np.min(unnormalized_img)) / \
+                                     (np.max(unnormalized_img) - np.min(unnormalized_img))
 
                     np.savez(output_path + f"/{n_imgs}.npz", normalized_img)
                     n_imgs += 1
@@ -250,6 +252,18 @@ def big_dataset_builder(
 if __name__ == "__main__":
     # QUALITY_TH = 0.7
     # data_splitter_v2(path="./data/actin", quality_threshold=QUALITY_TH, individual_norm=True)
+
+    from matplotlib import pyplot as plt
+
+    # path = "./data/big_dataset/train_quality_0.7"
+    # n_test_above_th = len(
+    #     [name for name in os.listdir(path) if os.path.isfile(os.path.join(path, name))]
+    # )
+    # for idx in range(n_test_above_th):
+    #     img = np.load(path + f"/{idx}.npz")["arr_0"]
+    #     print(np.min(img), np.max(img))
+    #
+    # exit()
 
     train_paths = [
         "./data/actin/train_all", "./data/camkii/CaMKII_Neuron/train", "./data/lifeact/LifeAct_Neuron/train",

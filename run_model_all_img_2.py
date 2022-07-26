@@ -71,14 +71,14 @@ if __name__ == "__main__":
                         help="enables cuda GPU")
     args = parser.parse_args()
 
-    # all_subset_paths = [
-    #     "./data/actin/train_all", "./data/camkii/CaMKII_Neuron/train", "./data/lifeact/LifeAct_Neuron/train",
-    #     "./data/psd/PSD95_Neuron/train", "./data/tubulin/train", "./data/actin/test_all",
-    #     "./data/camkii/CaMKII_Neuron/test", "./data/lifeact/LifeAct_Neuron/test",
-    #     "./data/psd/PSD95_Neuron/test", "./data/tubulin/test"
-    # ]
+    all_subset_paths = [
+        "./data/actin/train_all", "./data/camkii/CaMKII_Neuron/train", "./data/lifeact/LifeAct_Neuron/train",
+        "./data/psd/PSD95_Neuron/train", "./data/tubulin/train", "./data/actin/test_all",
+        "./data/camkii/CaMKII_Neuron/test", "./data/lifeact/LifeAct_Neuron/test",
+        "./data/psd/PSD95_Neuron/test", "./data/tubulin/test"
+    ]
 
-    all_subset_paths = ["./data/actin/test_ti"]
+    # all_subset_paths = ["./data/actin/test_ti"]
 
     all_data_path = "./data/big_dataset/run_all"
     if os.path.exists(all_data_path):
