@@ -19,7 +19,7 @@ action_spaces_new_photobleaching = {
     "p_sted": {"low": 0., "high": 100 * 1.7681e-3}
 }
 
-datamaps_dir = "./data/actin/datamaps_processed/0.25"
+datamaps_dir = "./data/big_dataset/run_all/subset/output_datamaps/datamaps_processed/0.25"
 n_datamaps = len([name for name in os.listdir(datamaps_dir) if os.path.isfile(os.path.join(datamaps_dir, name))])
 
 FLUO_NEW_PHOTOBLEACHING = {   # ATTO647N
@@ -42,11 +42,12 @@ FLUO_NEW_PHOTOBLEACHING = {   # ATTO647N
     "triplet_dynamic_frac": 0, #Ignore the triplet dynamics by default
 }
 
+background = 1000000
 pixelsize = 20e-9
 # Generating objects necessary for acquisition simulation
 laser_ex = base.GaussianBeam(635e-9)
 laser_sted = base.DonutBeam(750e-9, zero_residual=0)
-detector = base.Detector(noise=True, background=0)
+detector = base.Detector(noise=True, background=background)
 objective = base.Objective()
 objective.transmission[690] = 0.85
 fluo = base.Fluorescence(**FLUO_NEW_PHOTOBLEACHING)
@@ -55,7 +56,7 @@ microscope = base.Microscope(
 )
 i_ex, i_sted, _ = microscope.cache(pixelsize, save_cache=False)
 
-acq_save_path = "./data/actin/acquisitions"
+acq_save_path = datamaps_dir + f"/acqs_bckgrnd_{background}"
 if not os.path.exists(acq_save_path):
     os.mkdir(acq_save_path)
 

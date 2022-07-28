@@ -50,7 +50,7 @@ def data_splitter_all_dataset(dataset_paths_list, output_path="./data/big_datase
         for img in img_files:
             quality = int(img.split(".")[1]) / 1000
             unnormalized_img = np.load(os.path.join(path, img))["arr_0"]
-            normalized_img = unnormalized_img / np.max(unnormalized_img)
+            normalized_img = unnormalized_img / np.max(unnormalized_img)   # not the good normalization
 
             np.savez(data_save_path + f"/{counter}.npz", normalized_img)
             os.rename(data_save_path + f"/{counter}.npz", data_save_path + f"/{str(counter)}")
