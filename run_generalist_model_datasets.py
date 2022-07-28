@@ -91,6 +91,8 @@ if __name__ == "__main__":
         print("cuda")
         # unet = torch.load(model_path)
         unet.load_state_dict(torch.load(model_path))
+        device = torch.device("cuda")
+        unet.to(device)
     # use the unet in eval mode
     unet.eval()
 
