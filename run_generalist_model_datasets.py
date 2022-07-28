@@ -127,6 +127,7 @@ if __name__ == "__main__":
 
             np.save(datamaps_path + f"/{i}", datamap)
             datamap_processed = np.where(datamap < denoising_th, 0, datamap)
+            np.save(datamaps_processed_path + f"/{i}", datamap_processed)
 
             # To avoir memory leak
             del datamap
