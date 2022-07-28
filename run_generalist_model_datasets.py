@@ -64,7 +64,7 @@ if __name__ == "__main__":
     quality_th = 0.7
 
     dataset_paths_list = [
-        ["./data/actin_2/train", "./data/actin_2/test"],
+        ["./data/actin_3/train", "./data/actin_3/test"],
         ["./data/camkii/CaMKII_Neuron/train", "./data/camkii/CaMKII_Neuron/test"],
         ["./data/lifeact/LifeAct_Neuron/train", "./data/lifeact/LifeAct_Neuron/test"],
         ["./data/psd/PSD95_Neuron/train", "./data/psd/PSD95_Neuron/test"],
