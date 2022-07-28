@@ -84,9 +84,11 @@ if __name__ == "__main__":
     unet = UNet(n_channels=1, n_classes=1)
     # unet.load_state_dict(torch.load(model_path))
     if not args.cuda:
+        print("no cuda")
         # unet = torch.load(model_path, map_location=torch.device('cpu'))
         unet.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     else:
+        print("cuda")
         # unet = torch.load(model_path)
         unet.load_state_dict(torch.load(model_path))
     # use the unet in eval mode
