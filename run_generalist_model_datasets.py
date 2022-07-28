@@ -71,7 +71,7 @@ if __name__ == "__main__":
         ["./data/tubulin/train", "./data/tubulin/test"]
     ]
     output_path_list = [
-        f"./data/actin_2/all_quality_{quality_th}",
+        f"./data/actin_3/all_quality_{quality_th}",
         f"./data/camkii/CaMKII_Neuron/all_quality_{quality_th}",
         f"./data/lifeact/LifeAct_Neuron/all_quality_{quality_th}",
         f"./data/psd/PSD95_Neuron/all_quality_{quality_th}",
