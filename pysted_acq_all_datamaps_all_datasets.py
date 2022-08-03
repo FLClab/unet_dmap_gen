@@ -46,14 +46,14 @@ microscope = base.Microscope(
 i_ex, i_sted, _ = microscope.cache(pixelsize, save_cache=False)
 
 quality_th = 0.7
-datamaps_dir_list = [
-        f"./data/actin_3/all_quality_{quality_th}/datamaps_processed",
-        f"./data/camkii/CaMKII_Neuron/all_quality_{quality_th}/datamaps_processed",
-        f"./data/lifeact/LifeAct_Neuron/all_quality_{quality_th}/datamaps_processed",
-        f"./data/psd/PSD95_Neuron/all_quality_{quality_th}/datamaps_processed",
-        f"./data/tubulin/all_quality_{quality_th}/datamaps_processed",
-]
-# datamaps_dir_list = [f"./data/actin_3/all_quality_{quality_th}/datamaps_processed"]
+# datamaps_dir_list = [
+#         f"./data/actin_3/all_quality_{quality_th}/datamaps_processed",
+#         f"./data/camkii/CaMKII_Neuron/all_quality_{quality_th}/datamaps_processed",
+#         f"./data/lifeact/LifeAct_Neuron/all_quality_{quality_th}/datamaps_processed",
+#         f"./data/psd/PSD95_Neuron/all_quality_{quality_th}/datamaps_processed",
+#         f"./data/tubulin/all_quality_{quality_th}/datamaps_processed",
+# ]
+datamaps_dir_list = [f"./data/dataset_bassoon/patches_datamaps"]
 
 for datamaps_dir in datamaps_dir_list:
     sted_acqs_save_path = datamaps_dir + "/sted_acqs"
