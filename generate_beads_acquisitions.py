@@ -1,4 +1,5 @@
 import os
+import tqdm
 import numpy as np
 import pandas as pd
 from pysted import base
@@ -44,42 +45,65 @@ action_spaces = {
     "p_sted": {"low": 0., "high": 100 * 1.7681e-3}
 }
 
-acqs_save_dir = "./data/beads_acq"
-if not os.path.exists(acqs_save_dir):
-    os.mkdir(acqs_save_dir)
+save_dir = "./data/beads_acq_examples"
+sted_sp = save_dir + "/sted"
+confoc_sp = save_dir + "/confocal"
+datamap_sp = save_dir + "/datamap"
+if not os.path.exists(save_dir):
+    os.mkdir(save_dir)
+    os.mkdir(sted_sp)
+    os.mkdir(confoc_sp)
+    os.mkdir(datamap_sp)
 
 n_acqs = 1000
 pdt_list, p_ex_list, p_sted_list, n_molecs_beads_list = [], [], [], []
-for i in range(n_acqs):
-    acq_params = {
+for i in tqdm.tqdm(range(n_acqs)):
+    acq_params_sted = {
         "pdt": action_spaces["pdt"]["low"],
         "p_ex": np.random.uniform(0.2, 0.5) * action_spaces["p_ex"]["high"],
         "p_sted": np.random.uniform(0.1, 0.3) * action_spaces["p_sted"]["high"]
     }
+    acq_params_confocal = {
+        "pdt": action_spaces["pdt"]["low"],
+        "p_ex": np.random.uniform(0.2, 0.5) * action_spaces["p_ex"]["high"],
+        "p_sted": 0.0
+    }
 
-    beads_pos = np.random.randint(0, 64, size=(20, 2))
+    beads_pos = np.random.randint(0, 64, size=(30, 2))
     molecs_disp = np.zeros((64, 64))
     n_molecs = np.random.randint(75, 125)
     molecs_disp[beads_pos[:, 0], beads_pos[:, 1]] += n_molecs
     datamap = base.Datamap(molecs_disp, pixelsize)
     datamap.set_roi(i_ex, "max")
 
-    pdt_list.append(acq_params["pdt"])
-    p_ex_list.append(acq_params["p_ex"])
-    p_sted_list.append(acq_params["p_sted"])
+    # plt.imshow(molecs_disp)
+    # plt.show()
+    # exit()
+
+    # pdt_list.append(acq_params["pdt"])
+    # p_ex_list.append(acq_params["p_ex"])
+    # p_sted_list.append(acq_params["p_sted"])
     n_molecs_beads_list.append(n_molecs)
 
-    acq, _, _ = microscope.get_signal_and_bleach(datamap, datamap.pixelsize,
-                                                 **acq_params,
-                                                 bleach=False, update=False)
+    acq_sted, _, _ = microscope.get_signal_and_bleach(datamap, datamap.pixelsize,
+                                                      **acq_params_sted,
+                                                      bleach=False, update=False)
+    acq_confocal, _, _ = microscope.get_signal_and_bleach(datamap, datamap.pixelsize,
+                                                          **acq_params_confocal,
+                                                          bleach=False, update=False)
 
-    np.save(acqs_save_dir + f"/{i}", acq)
+    # np.save(sted_sp + f"/{i}", acq_sted)
+    # np.save(confoc_sp + f"/{i}", acq_confocal)
+    # np.save(datamap_sp + f"/{i}", molecs_disp)
+    plt.imsave(sted_sp + f"/{i}.pdf", acq_sted, cmap="hot")
+    plt.imsave(confoc_sp + f"/{i}.pdf", acq_confocal, cmap="hot")
+    plt.imsave(datamap_sp + f"/{i}.pdf", molecs_disp, cmap="bone")
 
-data = {
-    "pdt": pdt_list,
-    "p_ex": p_ex_list,
-    "p_sted": p_sted_list,
-    "n_molecs per bead": n_molecs_beads_list
-}
-dataframe = pd.DataFrame(data=data)
-dataframe.to_csv(acqs_save_dir + "/info.csv")
+# data = {
+#     "pdt": pdt_list,
+#     "p_ex": p_ex_list,
+#     "p_sted": p_sted_list,
+#     "n_molecs per bead": n_molecs_beads_list
+# }
+# dataframe = pd.DataFrame(data=data)
+# dataframe.to_csv(acqs_save_dir + "/info.csv")

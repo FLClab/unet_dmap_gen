@@ -72,28 +72,31 @@ for datamaps_dir in datamaps_dir_list:
     for i in tqdm.tqdm(range(n_datamaps)):
         molec_disp = np.array(500 * np.load(datamaps_dir + f"/{i}.npy"), dtype=int)
 
-        datamap = base.Datamap(molec_disp, pixelsize)
-        datamap.set_roi(i_ex, "max")
+        plt.imshow(np.load(datamaps_dir + f"/{i}.npy"))
+        plt.show()
 
-        acq_params_sted = {
-            "pdt": action_spaces_new_photobleaching["pdt"]["low"],
-            "p_ex": 0.35 * action_spaces_new_photobleaching["p_ex"]["high"],
-            "p_sted": 0.2 * action_spaces_new_photobleaching["p_sted"]["high"]
-        }
-
-        acq_params_confoc = {
-            "pdt": action_spaces_new_photobleaching["pdt"]["low"],
-            "p_ex": 0.3 * action_spaces_new_photobleaching["p_ex"]["high"],
-            "p_sted": 0.0 * action_spaces_new_photobleaching["p_sted"]["high"]
-        }
-
-        acq_sted, _, _ = microscope.get_signal_and_bleach(
-            datamap, datamap.pixelsize, **acq_params_sted, bleach=False, update=False
-        )
-
-        acq_confoc, _, _ = microscope.get_signal_and_bleach(
-            datamap, datamap.pixelsize, **acq_params_confoc, bleach=False, update=False
-        )
-
-        np.save(sted_acqs_save_path + f"/{i}", acq_sted)
-        np.save(confocal_acqs_save_path + f"/{i}", acq_confoc)
+        # datamap = base.Datamap(molec_disp, pixelsize)
+        # datamap.set_roi(i_ex, "max")
+        #
+        # acq_params_sted = {
+        #     "pdt": action_spaces_new_photobleaching["pdt"]["low"],
+        #     "p_ex": 0.35 * action_spaces_new_photobleaching["p_ex"]["high"],
+        #     "p_sted": 0.2 * action_spaces_new_photobleaching["p_sted"]["high"]
+        # }
+        #
+        # acq_params_confoc = {
+        #     "pdt": action_spaces_new_photobleaching["pdt"]["low"],
+        #     "p_ex": 0.3 * action_spaces_new_photobleaching["p_ex"]["high"],
+        #     "p_sted": 0.0 * action_spaces_new_photobleaching["p_sted"]["high"]
+        # }
+        #
+        # acq_sted, _, _ = microscope.get_signal_and_bleach(
+        #     datamap, datamap.pixelsize, **acq_params_sted, bleach=False, update=False
+        # )
+        #
+        # acq_confoc, _, _ = microscope.get_signal_and_bleach(
+        #     datamap, datamap.pixelsize, **acq_params_confoc, bleach=False, update=False
+        # )
+        #
+        # np.save(sted_acqs_save_path + f"/{i}", acq_sted)
+        # np.save(confocal_acqs_save_path + f"/{i}", acq_confoc)

@@ -31,9 +31,9 @@ parser.add_argument("-c", "--cuda", action="store_true",
                     help="enables cuda GPU")
 args = parser.parse_args()
 
-data_path = "./data/dataset_bassoon/patches"
+data_path = "./data/factin_patches"
 model_path = "./data/big_dataset/Results/generation/20220726-095941_udaxihhe/models/best.pt"
-datamap_output_path = "./data/dataset_bassoon/patches_datamaps"
+datamap_output_path = "./data/factin_patches_datamaps"
 if not os.path.exists(datamap_output_path):
     os.mkdir(datamap_output_path)
 
