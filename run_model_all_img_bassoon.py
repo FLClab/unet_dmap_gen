@@ -32,7 +32,7 @@ parser.add_argument("-c", "--cuda", action="store_true",
 args = parser.parse_args()
 
 data_path = "./data/dataset_bassoon/patches"
-model_path = "./data/big_dataset/Results/generation/20220726-095941_udaxihhe/best.pt"
+model_path = "./data/big_dataset/Results/generation/20220726-095941_udaxihhe/models/best.pt"
 datamap_output_path = "./data/dataset_bassoon/patches_datamaps"
 if not os.path.exists(datamap_output_path):
     os.mkdir(datamap_output_path)
