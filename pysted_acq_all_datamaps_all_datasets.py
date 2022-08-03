@@ -53,7 +53,7 @@ quality_th = 0.7
 #         f"./data/psd/PSD95_Neuron/all_quality_{quality_th}/datamaps_processed",
 #         f"./data/tubulin/all_quality_{quality_th}/datamaps_processed",
 # ]
-datamaps_dir_list = [f"./data/dataset_bassoon/patches_datamaps"]
+datamaps_dir_list = [f"./data/dataset_bassoon/patches_datamaps/datamaps_processed"]
 
 for datamaps_dir in datamaps_dir_list:
     sted_acqs_save_path = datamaps_dir + "/sted_acqs"
