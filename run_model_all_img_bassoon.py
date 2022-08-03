@@ -56,9 +56,9 @@ for i, X in enumerate(tqdm(data_loader, desc="[----] ")):
     # Reshape and send to gpu
     X = X["image"]
     if X.dim() == 3:
-        X = X.unsqueeze(0)
+        X = X.unsqueeze(0).float()
     if args.cuda:
-        X = X.cuda()
+        X = X.cuda().float()
 
     # Prediction and loss computation
     unet_dmap_pred = unet.forward(X).cpu().data.numpy()[0, 0]
