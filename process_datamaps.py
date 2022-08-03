@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 
 # real_acqs_dir = "./data/big_dataset/run_all/subset/"
-datamaps_dir = "./data/dataset_bassoon/patches_datamaps"
+datamaps_dir = "./data/factin_patches_datamaps"
 processed_datamaps_dir = datamaps_dir + "/datamaps_processed"
 # fig_save_path = "./data/actin/lab_meeting_figs"
 
