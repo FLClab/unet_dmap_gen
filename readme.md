@@ -10,7 +10,8 @@ PSD95
 aCaMKII
 LifeAct
 
-using only the images with a quality score >= 0.7
+using only the images with a quality score >= 0.7. Model takes as input 224x224 pixel images and outputs datamaps of the
+same size.
 
 The file run_generalist_model_datasets.py shows an example of how to run the model on the separate datasets.
 
