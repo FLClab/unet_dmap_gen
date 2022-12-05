@@ -8,7 +8,7 @@ import tqdm
 
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-from skimage import filters
+from skimage import filters, transform
 
 
 class ActinDataset(Dataset):
@@ -75,6 +75,9 @@ class CompleteImageDataset(Dataset):
         for image_name in tqdm.tqdm(image_names, desc="Images"):
             image = tifffile.imread(image_name)
 
+            # Rescales from 15nm pixels to 20nm pixels
+            image = transform.rescale(image, 15 / 20, preserve_range=True).astype(np.uint16)
+
             foreground = np.sum(image, axis=0)
             foreground = filters.gaussian(foreground, sigma=5)
             threshold = filters.threshold_otsu(foreground)
@@ -111,6 +114,9 @@ class CompleteImageDataset(Dataset):
             image_name = info["key"]
             slc = info["slc"]
             image = tifffile.imread(image_name)
+
+            # Rescales from 15nm pixels to 20nm pixels
+            image = transform.rescale(image, 15 / 20, preserve_range=True).astype(np.uint16)
 
             # Clears cache and updates with most recent image
             self.cache = {}

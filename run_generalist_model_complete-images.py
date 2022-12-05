@@ -1,9 +1,7 @@
 """
-- Go through the train and test folders of a given dataset, extract the images with q >= th and place them in a folder
-- save a .csv containing the idx name of the file and corresponding quality
-- Run model on all imgs in folder
-- Save the output datamap and processed datamap to folders
-- Repeat for every dataset
+- Go through all tif images in the specified folder
+- Run model on all available crops in each images
+- Save the output and the filtered output
 """
 import os
 import torch
