@@ -82,7 +82,7 @@ if __name__ == "__main__":
             dmap = dmap.squeeze()
             num = i * dataloader.batch_size + n
             np.save(os.path.join(datamaps_path, f"{num:06d}"), dmap)
-            datamap_processed = np.where(datamap < DENOISING_THRESHOLD, 0, dmap)
+            datamap_processed = np.where(dmap < DENOISING_THRESHOLD, 0, dmap)
             np.save(os.path.join(datamaps_processed_path, f"{num:06d}"), datamap_processed)
 
         # To avoir memory leak
