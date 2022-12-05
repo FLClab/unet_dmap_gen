@@ -1,6 +1,6 @@
 This repo contains code to train and run a UNet to generate pySTED Datamaps from real STED images.
 
-A trained model is available VALERIA:flclab-public/unet_datamap_generation/20220726-095941_udaxihhe/best.pt
+A trained model is available VALERIA:flclab-public/bturcotte/unet_datamap_generation/20220726-095941_udaxihhe/best.pt
 
 Model was trained on a combination of the following datasets from https://lvsn.github.io/optimnanoscopy/
 
