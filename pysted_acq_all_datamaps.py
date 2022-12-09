@@ -10,8 +10,10 @@ save acquisition
 
 import os
 import numpy as np
+import matplotlib
 from matplotlib import pyplot as plt
 from pysted import base
+matplotlib.use('tkagg')
 
 action_spaces_new_photobleaching = {
     "pdt": {"low": 10.0e-6, "high": 150.0e-6},
