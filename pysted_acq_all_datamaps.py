@@ -75,7 +75,7 @@ for i in range(n_datamaps):
     acq_params_sted = {
         "pdt": action_spaces_new_photobleaching["pdt"]["low"],
         "p_ex": 0.25 * action_spaces_new_photobleaching["p_ex"]["high"],
-        "p_sted": 0.30 * action_spaces_new_photobleaching["p_sted"]["high"]
+        "p_sted": 0.45 * action_spaces_new_photobleaching["p_sted"]["high"]
     }
 
     acq_sted, _, _ = microscope.get_signal_and_bleach(
