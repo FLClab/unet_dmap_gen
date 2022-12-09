@@ -49,7 +49,7 @@ background = 1000000
 pixelsize = 20e-9
 # Generating objects necessary for acquisition simulation
 laser_ex = base.GaussianBeam(635e-9)
-laser_sted = base.DonutBeam(750e-9, zero_residual=0, anti_stokes=False)
+laser_sted = base.DonutBeam(750e-9, zero_residual=0, anti_stokes=True)
 detector = base.Detector(noise=True, background=background)
 objective = base.Objective()
 objective.transmission[690] = 0.85
@@ -74,8 +74,8 @@ for i in range(n_datamaps):
 
     acq_params_sted = {
         "pdt": action_spaces_new_photobleaching["pdt"]["low"],
-        "p_ex": 0.55 * action_spaces_new_photobleaching["p_ex"]["high"],
-        "p_sted": 0.15 * action_spaces_new_photobleaching["p_sted"]["high"]
+        "p_ex": 0.25 * action_spaces_new_photobleaching["p_ex"]["high"],
+        "p_sted": 0.30 * action_spaces_new_photobleaching["p_sted"]["high"]
     }
 
     acq_sted, _, _ = microscope.get_signal_and_bleach(
