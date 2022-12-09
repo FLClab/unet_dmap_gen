@@ -87,7 +87,11 @@ for i in range(n_datamaps):
     fig, axes = plt.subplots(1, 2)
 
     axes[0].imshow(real_acq, cmap="hot")
+    axes[0].set_title(f"REAL \n"
+                      f"min = {np.min(real_acq)}, max = {np.max(real_acq)}")
     axes[1].imshow(normalized_acq, cmap="hot")
+    axes[1].set_title(f"pySTED (normalized) \n"
+                      f"min = {np.min(normalized_acq)}, max = {np.max(normalized_acq)}")
 
     plt.show()
 
