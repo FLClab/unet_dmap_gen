@@ -75,7 +75,7 @@ for i in range(n_datamaps):
     acq_params_sted = {
         "pdt": action_spaces_new_photobleaching["pdt"]["low"],
         "p_ex": 0.35 * action_spaces_new_photobleaching["p_ex"]["high"],
-        "p_sted": 0.2 * action_spaces_new_photobleaching["p_sted"]["high"]
+        "p_sted": 0.15 * action_spaces_new_photobleaching["p_sted"]["high"]
     }
 
     acq_sted, _, _ = microscope.get_signal_and_bleach(
@@ -84,7 +84,7 @@ for i in range(n_datamaps):
 
     normalized_acq = (acq_sted - np.min(acq_sted)) / (np.max(acq_sted) - np.min(acq_sted))
 
-    fig, axes = plt.subplots(1, 2)
+    fig, axes = plt.subplots(1, 2, figsize=(16, 8))
 
     axes[0].imshow(real_acq, cmap="hot")
     axes[0].set_title(f"REAL \n"
