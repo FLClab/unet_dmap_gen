@@ -49,7 +49,7 @@ background = 1000000
 pixelsize = 20e-9
 # Generating objects necessary for acquisition simulation
 laser_ex = base.GaussianBeam(635e-9)
-laser_sted = base.DonutBeam(750e-9, zero_residual=0)
+laser_sted = base.DonutBeam(750e-9, zero_residual=0, anti_stokes=False)
 detector = base.Detector(noise=True, background=background)
 objective = base.Objective()
 objective.transmission[690] = 0.85
