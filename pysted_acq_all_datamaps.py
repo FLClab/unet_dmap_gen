@@ -19,7 +19,8 @@ action_spaces_new_photobleaching = {
     "p_sted": {"low": 0., "high": 100 * 1.7681e-3}
 }
 
-datamaps_dir = "./data/big_dataset/run_all/subset/output_datamaps/datamaps_processed/0.25"
+datamaps_dir = os.path.expanduser("~/Documents/a22_docs/micranet_dataset_test/datamaps_processed")
+real_acqs_dir = os.path.expanduser("~/Documents/a22_docs/micranet_dataset_test")
 n_datamaps = len([name for name in os.listdir(datamaps_dir) if os.path.isfile(os.path.join(datamaps_dir, name))])
 
 FLUO_NEW_PHOTOBLEACHING = {   # ATTO647N
@@ -61,6 +62,8 @@ if not os.path.exists(acq_save_path):
     os.mkdir(acq_save_path)
 
 for i in range(n_datamaps):
+    real_acq = np.load(real_acqs_dir + f"/{i}")["arr_0"]
+
     print(f"acq {i+1} of {n_datamaps}")
     molec_disp = np.array(1000 * np.load(datamaps_dir + f"/{i}.npy"), dtype=int)
 
@@ -77,7 +80,16 @@ for i in range(n_datamaps):
         datamap, datamap.pixelsize, **acq_params_sted, bleach=False, update=False
     )
 
-    np.save(acq_save_path + f"/{i}", acq_sted)
+    normalized_acq = (acq_sted - np.min(acq_sted)) / (np.max(acq_sted) - np.min(acq_sted))
+
+    fig, axes = plt.subplots(1, 2)
+
+    axes[0].imshow(real_acq, cmap="hot")
+    axes[1].imshow(normalized_acq, cmap="hot")
+
+    plt.show()
+
+    # np.save(acq_save_path + f"/{i}", acq_sted)
 
 
 
