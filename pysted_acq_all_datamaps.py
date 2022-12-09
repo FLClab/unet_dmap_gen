@@ -64,7 +64,6 @@ if not os.path.exists(acq_save_path):
     os.mkdir(acq_save_path)
 
 for i in range(n_datamaps):
-    real_acq = np.load(real_acqs_dir + f"/{i}")["arr_0"]
 
     print(f"acq {i+1} of {n_datamaps}")
     molec_disp = np.array(1000 * np.load(datamaps_dir + f"/{i}.npy"), dtype=int)
@@ -84,18 +83,7 @@ for i in range(n_datamaps):
 
     normalized_acq = (acq_sted - np.min(acq_sted)) / (np.max(acq_sted) - np.min(acq_sted))
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 8))
-
-    axes[0].imshow(real_acq, cmap="hot")
-    axes[0].set_title(f"REAL \n"
-                      f"min = {np.min(real_acq)}, max = {np.max(real_acq)}")
-    axes[1].imshow(normalized_acq, cmap="hot")
-    axes[1].set_title(f"pySTED (normalized) \n"
-                      f"min = {np.min(normalized_acq)}, max = {np.max(normalized_acq)}")
-
-    plt.show()
-
-    # np.save(acq_save_path + f"/{i}", acq_sted)
+    np.save(acq_save_path + f"/{i}", acq_sted)
 
 
 
