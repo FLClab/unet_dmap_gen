@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     denoising_th = 0.25
 
-    data_path = os.path.expanduser("~/Documents/a22_docs/micranets_dataset_test")
+    data_path = os.path.expanduser("~/Documents/a22_docs/micranet_dataset_test")
 
     # build dataloader
     dataset = ActinDataset(data_path)
