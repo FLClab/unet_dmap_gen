@@ -196,7 +196,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.enabled=False
     torch.backends.cudnn.deterministic=True
 
-    PATH = "./results/data/big_dataset"
+    PATH = "./results/data"
 
     if args.no_tqdm:
         def tqdm(loader, *args, **kwargs):
