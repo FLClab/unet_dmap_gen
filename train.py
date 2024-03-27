@@ -6,8 +6,6 @@ import random
 import datetime
 import shutil
 import json
-# import loader
-import utils
 import time
 import pickle
 import string
@@ -15,21 +13,14 @@ import math
 
 from torch.utils.data import DataLoader, Dataset
 from torch import nn
-from tqdm import *
-from data.split_data_quality import data_splitter, data_splitter_v2, big_dataset_builder
+from tqdm import tqdm
 from collections import defaultdict
-from dataset import ActinDataset
-from unet import UNet
 from skimage import filters
 
+import utils
 
-def gaussian_fn(M, std):
-    # taken from last comment on https://stackoverflow.com/questions/60534909/gaussian-filter-in-pytorch
-    n = torch.arange(0, M) - (M - 1.0) / 2.0
-    sig2 = 2 * std * std
-    w = torch.exp(-n ** 2 / sig2)
-    return w
-
+from unet import UNet
+from dataset import ImageDataset
 
 def create_savefolder(params, dry_run=False):
     """
@@ -62,6 +53,7 @@ class GaussianSmoothing(nn.Module):
     """
     Apply gaussian smoothing on a 2d tensor. Filtering is performed
     seperately for each channel in the input using a depthwise convolution.
+
     :param channels: Number of channels of the input data
     :param sigma: Sigma parameter of the gaussian filter
     :param dim: The number of dimension of the data (2D). Defaults to 2D
@@ -113,9 +105,11 @@ class GaussianSmoothing(nn.Module):
     def amax(self, x, dim, keepdim=True):
         """
         Implements an `amax` method that is not present in PyTorch 1.5
+
         :param x: An input `torch.tensor`
         :param dim: An int or tuple of ints to apply the max operator
         :param keepdim: Wheter the output `torch.tensor` should have the same dims
+
         :returns : A `torch.tensor`
         """
         if isinstance(dim, int):
@@ -128,8 +122,10 @@ class GaussianSmoothing(nn.Module):
     def forward(self, x, normalize=None):
         """
         Apply gaussian filter to input.
+
         :param x: A `torch.tensor` of the input data
         :param normalize: (optional) A `str` of the normalization type
+
         :returns : A `torch.tensor` of the filtered input data
         """
         pad = int((self.kernel_size - 1) // 2)
@@ -144,41 +140,26 @@ class GaussianSmoothing(nn.Module):
             pass
         return x
 
-
-class GaussianConv(nn.Module):
-    def __init__(self):
-        gaussian_kernel = gkern()
-        super(GaussianConv, self).__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(
-                1, 1, gaussian_kernel.shape[0], padding=int(gaussian_kernel.shape[0] / 2), bias=False
-            )
-        )
-
-    def forward(self, X):
-        return self.conv(X)
-
-
-def gkern(kernlen=256, std=128):
-    # taken from last comment on https://stackoverflow.com/questions/60534909/gaussian-filter-in-pytorch
-    """Returns a 2D Gaussian kernel array."""
-    gkern1d = gaussian_fn(kernlen, std=std)
-    gkern2d = torch.outer(gkern1d, gkern1d)
-    gkern2d = gkern2d.unsqueeze(0)
-    return gkern2d
-
-
 def criterion(input, target, sigma=1, cuda=False):
     """
-    loss is mse (?) between input img and traget convolved with gaussian filter
-    """
+    Calculates the criterion for the given input and target.
 
+    Args:
+        input (torch.Tensor): The input tensor.
+        target (torch.Tensor): The target tensor.
+        sigma (float, optional): The standard deviation for Gaussian smoothing. Defaults to 1.
+        cuda (bool, optional): Whether to use CUDA for computations. Defaults to False.
+
+    Returns:
+        torch.Tensor: The calculated criterion value.
+
+    """
     gkern = GaussianSmoothing(1, sigma)
     if cuda:
         gkern = gkern.cuda()
     if cuda:
         target = target.to(device='cuda')
-    psf_target = gkern.forward(target, normalize=None)   # TODO : normalement c'était none, tester avec kernel
+    psf_target = gkern.forward(target, normalize=None)
     if cuda:
         psf_target = psf_target.to(device='cuda')
 
@@ -186,7 +167,9 @@ def criterion(input, target, sigma=1, cuda=False):
     mse_loss_array = (input - psf_target)**2
     mse_loss = mse_loss_array.sum() / (mse_loss_array.shape[-1] * mse_loss_array.shape[-2])
 
-    return mse_loss
+    sparsity = 2e-5 * input.sum()
+
+    return mse_loss + sparsity
 
 
 if __name__ == "__main__":
@@ -213,49 +196,22 @@ if __name__ == "__main__":
     torch.backends.cudnn.enabled=False
     torch.backends.cudnn.deterministic=True
 
-    PATH = "./data/big_dataset"
+    PATH = "./results/data/big_dataset"
 
     if args.no_tqdm:
         def tqdm(loader, *args, **kwargs):
             return loader
 
-    if args.dry_run:
-        training_path = PATH + f"/train_dry"
-        testing_path = PATH + f"/test_dry"
-    else:
-        # data_splitter_v2(PATH, quality_threshold=args.quality_threshold, individual_norm=True, rotations=True)
-        train_subset_paths = [
-            "./data/actin/train_all", "./data/camkii/CaMKII_Neuron/train", "./data/lifeact/LifeAct_Neuron/train",
-            "./data/psd/PSD95_Neuron/train", "./data/tubulin/train"
-        ]
-        test_subset_paths = [
-            "./data/actin/test_all", "./data/camkii/CaMKII_Neuron/test", "./data/lifeact/LifeAct_Neuron/test",
-            "./data/psd/PSD95_Neuron/test", "./data/tubulin/test"
-        ]
-        big_dataset_builder(
-            train_subset_paths, test_subset_paths, quality_threshold=args.quality_threshold, output_path=PATH
-        )
-        training_path = PATH + f"/train_quality_{args.quality_threshold}"
-        testing_path = PATH + f"/test_quality_{args.quality_threshold}"
+    training_path = PATH + f"/train_quality_{args.quality_threshold}"
+    testing_path = PATH + f"/test_quality_{args.quality_threshold}"
 
-    training, testing = ActinDataset(training_path), ActinDataset(testing_path)
-
-    # metadata = utils.load_json("./dataset/metadata_2019-06-26.json")   # j'ai pas ça
-    # maxima, minima = [], []
-    # for key, value in metadata.items():
-    #     maxima.append(value["max"])
-    #     minima.append(value["min"])
-    # image_maximum = np.median(maxima, axis=0)
-    # image_minimum = np.median(minima, axis=0)
-    image_maximum = None,
-    image_minimum = None
+    training, testing = ImageDataset(training_path), ImageDataset(testing_path)
 
     lr, epochs = 1e-4, 1000   # 1000
     min_valid_loss = np.inf
 
     stats = defaultdict(list)
 
-    # do I actually need all this?
     trainer_params = {
         "savefolder": f"{PATH}/Results/generation",
         "datetime": datetime.datetime.today().strftime("%Y%m%d-%H%M%S"),
@@ -263,8 +219,8 @@ if __name__ == "__main__":
         "size": 128,
         "pretrained_model": None,
         "pretrained_model_ckpt": "best",
-        "image_min": image_minimum,   #.tolist(),
-        "image_max": image_maximum,   #.tolist(),
+        "image_min": None,
+        "image_max": None,
         "len_training": len(training),
         "len_validation": None,
         "len_testing": len(testing),
@@ -312,7 +268,6 @@ if __name__ == "__main__":
             "threshold": 0.005,
             "min_lr": 1e-5,
             "factor": 0.5,
-            "verbose": True
         },
         "criterion": {
             "name": "MSELoss",
@@ -328,44 +283,21 @@ if __name__ == "__main__":
     output_folder = create_savefolder(trainer_params, dry_run=trainer_params["dry_run"])
     json.dump(trainer_params, open(os.path.join(output_folder, "trainer_params.json"), "w"), indent=4, sort_keys=True)
 
-    train_loader = DataLoader(training)
-    valid_loader = DataLoader(testing)
+    train_loader = DataLoader(training, batch_size=16, shuffle=True, num_workers=0)
+    valid_loader = DataLoader(testing, batch_size=16, shuffle=True, num_workers=0)
 
-    unet = UNet(n_channels=1, n_classes=1)   # right? og code uses trainer_params as input
-
-    if isinstance(trainer_params["pretrained_model"], str):
-        unet.load_state_dict(
-            torch.load(
-                os.path.join(trainer_params["savefolder"], trainer_params["pretrained_model"])
-            )
-        )
+    unet = UNet(n_channels=1, n_classes=1)
 
     if trainer_params["cuda"]:
         unet = unet.cuda()
 
     optimizer = torch.optim.Adam(unet.parameters(), lr=lr)
-    if isinstance(trainer_params["pretrained_model"], str):
-        optimizer.load_state_dict(optimizers["optimizer"])
-
-    criterions = {   # not sure about this
-        "GaussianConvolutionLoss": criterion
-    }
-
     estopper = utils.EarlyStopper(**trainer_params["estopper"])
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, **trainer_params["scheduler"])
 
     os.path.join(output_folder, "training_parameters")
     with open(f'{os.path.join(output_folder, "training_parameters")}.pkl', 'wb') as handle:
         pickle.dump(trainer_params, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-    # TODO : do this in the data splitter func
-    # rename files 0 to n-1 in order to load them correctly
-    files_training = [name for name in os.listdir(training_path) if os.path.isfile(os.path.join(training_path, name))]
-    files_testing = [name for name in os.listdir(testing_path) if os.path.isfile(os.path.join(testing_path, name))]
-    for i, name in enumerate(sorted(files_training)):
-        os.rename(os.path.join(training_path, name), os.path.join(training_path, f"{str(i)}"))
-    for i, name in enumerate(sorted(files_testing)):
-        os.rename(os.path.join(testing_path, name), os.path.join(testing_path, f"{str(i)}"))
 
     dataframe = pd.DataFrame({"epoch": [None], "trainMean": [None], "testMean": [None], "testMin": [None]})
     dataframe.drop([0])
@@ -390,7 +322,7 @@ if __name__ == "__main__":
             # Reshape and send to gpu
             X = X["image"]
             if X.dim() == 3:
-                X = X.unsqueeze(0)
+                X = X.unsqueeze(1)
             if trainer_params["cuda"]:
                 X = X.cuda()
 
@@ -423,7 +355,7 @@ if __name__ == "__main__":
                 del unet_dmap_pred_numpy
 
                 # To avoid memory leak
-            del X,  loss
+            del X, loss
 
         # Puts the network in training mode
         unet.eval()
@@ -434,7 +366,7 @@ if __name__ == "__main__":
             # Reshape and send to gpu
             X = X["image"]
             if X.dim() == 3:
-                X = X.unsqueeze(0)
+                X = X.unsqueeze(1)
             if trainer_params["cuda"]:
                 X = X.cuda()
 
@@ -476,13 +408,13 @@ if __name__ == "__main__":
         log_file.write(f"Loss/Train at epoch {epoch} : {stats['trainMean'][-1][0]} \n")
         log_file.write(f"Loss/Validation at epoch {epoch} : {stats['testMean'][-1][0]} \n")
         log_file.write(f"Loss/min_Validation at epoch {epoch} : {np.min(stats['testMean'][0], axis=0)} \n")
-        latest_data = {
-            "epoch": epoch,
-            "trainMean": stats['trainMean'][-1][0],
-            "testMean": stats['testMean'][-1][0],
-            "testMin": np.min(stats['testMean'][0], axis=0)
-        }
-        dataframe = dataframe.append(latest_data, ignore_index=True)
+        latest_data = pd.DataFrame({
+            "epoch": [epoch],
+            "trainMean": [stats['trainMean'][-1][0]],
+            "testMean": [stats['testMean'][-1][0]],
+            "testMin": [np.min(stats['testMean'][0], axis=0)]
+        })
+        dataframe = pd.concat([dataframe, latest_data], ignore_index=True)
         dataframe.to_csv(f"{output_folder}/training_progress.csv")
 
         log_file.write(f"LearningRate/network at epoch {epoch} : {stats['lr'][-1][0]} \n")
@@ -502,7 +434,7 @@ if __name__ == "__main__":
             optimizers = {
                 "optimizer": optimizer
             }
-            torch.save(unet.state_dict(), f"{os.path.join(output_folder, 'models')}/epoch_{epoch}.pt")
+            torch.save(unet.state_dict(), f"{os.path.join(output_folder, 'models')}/latest.pt")
 
         print("[----] Epoch {} done!".format(epoch + 1))
         print("[----]     Avg loss train/validation : {} / {}".format(stats["trainMean"][-1], stats["testMean"][-1]))
