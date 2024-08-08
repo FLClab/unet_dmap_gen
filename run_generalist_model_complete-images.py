@@ -13,7 +13,6 @@ import tifffile
 from torch.utils.data import DataLoader, Dataset
 from torch import nn
 from tqdm import *
-from data.split_data_quality import data_splitter, data_splitter_v2
 from collections import defaultdict
 from dataset import get_image_dataset
 from unet import UNet
@@ -34,7 +33,10 @@ def savefile(savename, image):
     if savename.endswith(".tif") or savename.endswith(".tiff"):
         tifffile.imwrite(savename, image.astype(np.float32))
     else:
-        np.save(savename, image)
+        if isinstance(image, dict):
+            np.savez(savename, **image)
+        else:
+            np.save(savename, image)
 
 if __name__ == "__main__":
 
@@ -79,6 +81,9 @@ if __name__ == "__main__":
     datamaps_processed_path = os.path.join("./results/datamaps_processed", os.path.basename(args.folder))
     os.makedirs(datamaps_processed_path, exist_ok=True)
 
+    datamaps_testing_path = os.path.join("./results/testing-datamaps", os.path.basename(args.folder))
+    os.makedirs(datamaps_processed_path, exist_ok=True)    
+
     print(f"Running model through images at {args.folder}")
     # run model through dataloader
     for i, X in enumerate(tqdm(dataloader, desc="[----] ")):
@@ -111,6 +116,9 @@ if __name__ == "__main__":
                 savefile(os.path.join(datamaps_path, f"{num:06d}"), dmap)
                 datamap_processed = np.where(dmap < DENOISING_THRESHOLD, 0, dmap)
                 savefile(os.path.join(datamaps_processed_path, f"{num:06d}"), datamap_processed)
+
+                savefile(os.path.join(datamaps_testing_path, f"{num:06d}"), {
+                    "datamap":dmap, "image" : X[n].cpu().data.numpy().squeeze()})
 
         # To avoir memory leak
         del datamap
