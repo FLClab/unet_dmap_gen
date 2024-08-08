@@ -1,6 +1,6 @@
 # U-Net datamap
 
-This is a U-Net implementation for datamap generation used in pySTED.
+This is a U-Net implementation for datamap generation used in pySTED. The pretrained model can be downloaded from [here](https://s3.valeria.science/flclab-pysted/index.html).
 
 ## Training
 
